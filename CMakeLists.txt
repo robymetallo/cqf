@@ -8,7 +8,7 @@ if (NOT CMAKE_BUILD_TYPE)
             "Default BUILD_TYPE is ${default_build_type}" FORCE)
 endif ()
 
-# Always use '-fPIC' or '-fPIE'
+# Use '-fPIC' or '-fPIE' when not in Debug
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(CheckIPOSupported)
@@ -18,6 +18,11 @@ if (IPO_AVAILABLE)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 else ()
     message(STATUS "IPO/LTO not available")
+endif ()
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+#    set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif ()
 
 # Detect SSE4_2 and BMI1 and BMI2 capabilities (required for PDEP and TZCNT instructions)
