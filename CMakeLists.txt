@@ -21,7 +21,7 @@ else ()
 endif ()
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-#    set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+    #    set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif ()
 
@@ -38,8 +38,8 @@ find_package(Threads REQUIRED)
 
 add_library(cqf SHARED)
 
-set_property(TARGET cqf PROPERTY CXX_STANDARD 11)
-set_property(TARGET cqf PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET cqf PROPERTY C_STANDARD 99)
+set_property(TARGET cqf PROPERTY C_STANDARD_REQUIRED ON)
 
 target_sources(cqf PRIVATE src/gqf.c
         PRIVATE src/gqf_file.c
@@ -55,11 +55,42 @@ target_include_directories(cqf PUBLIC include)
 
 if (${HAS_BMI1} GREATER -1)
     target_compile_options(cqf INTERFACE -mbmi)
-endif()
+endif ()
 if (${HAS_BMI2} GREATER -1)
     target_compile_options(cqf INTERFACE -mbmi2)
-endif()
+endif ()
 if (${HAS_SSE4_2} GREATER -1)
     target_compile_options(cqf INTERFACE -msse4.2)
-endif()
+endif ()
 
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+    target_compile_options(cqf INTERFACE
+            -fbuiltin
+            -g3
+            -Og
+            -fsanitize=address
+            -fno-omit-frame-pointer
+            )
+    target_link_options(cqf INTERFACE
+            -fsanitize=address
+            -fno-omit-frame-pointer
+            -no-pie)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(cqf INTERFACE
+                -fprofile-instr-generate
+                -fcoverage-mapping)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(cqf INTERFACE
+                -fprofile-arcs
+                -ftest-coverage)
+        target_link_options(cqf INTERFACE
+                -fprofile-arcs
+                -ftest-coverage)
+    endif ()
+else ()
+    target_compile_options(cqf INTERFACE
+            -O3)
+
+endif ()
