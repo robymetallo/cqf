@@ -78,36 +78,55 @@ else ()
     message(STATUS "SSE4.2 not available")
 endif ()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if (WITH_ASAN)
+    message(STATUS "Enabling ASAN")
+    target_compile_options(cqf PRIVATE -fsanitize=address)
+    target_link_options(cqf PRIVATE -fsanitize=address)
+elseif(WITH_TSAN)
+    message(STATUS "Enabling TSAN")
+    target_compile_options(cqf PRIVATE -fsanitize=thread)
+    target_link_options(cqf PRIVATE -fsanitize=thread)
+elseif(WITH_UBSAN) # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+    message(STATUS "Enabling UBSAN")
+    target_compile_options(cqf PRIVATE
+            -fsanitize=signed-integer-overflow,null,alignment
+            -fno-sanitize-recover=null
+            -fsanitize-trap=alignment)
+    target_link_options(cqf PRIVATE
+            -fsanitize=signed-integer-overflow,null,alignment
+            -fno-sanitize-recover=null
+            -fsanitize-trap=alignment)
+elseif(WITH_MSAN)
+    message(STATUS "Enabling MSAN")
+    target_compile_options(cqf PRIVATE -fsanitize=memory -fPIE -pie)
+    target_link_options(cqf PRIVATE -fsanitize=memory -fPIE -pie)
+endif()
+
+if (${CMAKE_BUILD_TYPE} MATCHES "^Debug*")
     set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
-    target_compile_options(cqf PRIVATE
+    target_compile_options(cqf INTERFACE
             -fbuiltin
             -g3
             -Og
-            -fsanitize=address
             -fno-omit-frame-pointer)
-    target_link_options(cqf PRIVATE
-            -fsanitize=address
+    target_link_options(cqf INTERFACE
             -fno-omit-frame-pointer
             -no-pie)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_options(cqf PRIVATE
+        target_compile_options(cqf INTERFACE
                 -fprofile-instr-generate
                 -fcoverage-mapping)
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(cqf PRIVATE
+        target_compile_options(cqf INTERFACE
                 -fprofile-arcs
                 -ftest-coverage)
-        target_link_options(cqf PRIVATE
+        target_link_options(cqf INTERFACE
                 -fprofile-arcs
                 -ftest-coverage)
     endif ()
 else ()
-    target_compile_options(cqf PRIVATE
-            -Wall
-            -Wextra
-            -pedantic
+    target_compile_options(cqf INTERFACE
             -O3)
 
 endif ()
