@@ -68,6 +68,7 @@ extern "C" {
 	/* It is sometimes useful to insert a key that has already been
 		 hashed. */
 #define QF_KEY_IS_HASH (0x08)
+#define QF_QUIET (0x16)
 
 	/******************************************
 		 The CQF defines low-level constructor and destructor operations

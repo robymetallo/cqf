@@ -10,6 +10,9 @@ if (NOT CMAKE_BUILD_TYPE)
             "Default BUILD_TYPE is ${default_build_type}" FORCE)
 endif ()
 
+SET(WITH_BMI false CACHE BOOL "Compile with BMI and BMI2 turned on.")
+SET(WITH_SSE42 false CACHE BOOL "Compile with SSE4.2 turned on.")
+
 # Use '-fPIC' or '-fPIE' when not in Debug
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -58,35 +61,44 @@ target_link_libraries(cqf
 
 target_include_directories(cqf PUBLIC include)
 
-
-if (${HAS_BMI1} GREATER -1)
-    target_compile_options(cqf PRIVATE -mbmi)
-    message(STATUS "BMI available")
-else ()
-    message(STATUS "BMI not available")
+if (${WITH_BMI})
+    target_compile_options(cqf PRIVATE -mbmi -mbmi2)
+    message(STATUS "Using BMI and BMI2 because -DWITH_BMI was specified.")
+#else ()
+#    if (${HAS_BMI1} GREATER -1)
+#        target_compile_options(cqf PRIVATE -mbmi)
+#        message(STATUS "BMI available")
+#    else ()
+#        message(STATUS "BMI not available")
+#    endif ()
+#    if (${HAS_BMI2} GREATER -1)
+#        target_compile_options(cqf PRIVATE -mbmi2)
+#        message(STATUS "BMI2 available")
+#    else ()
+#        message(STATUS "BMI2 not available")
+#    endif ()
 endif ()
-if (${HAS_BMI2} GREATER -1)
-    target_compile_options(cqf PRIVATE -mbmi2)
-    message(STATUS "BMI2 available")
-else ()
-    message(STATUS "BMI2 not available")
-endif ()
-if (${HAS_SSE4_2} GREATER -1)
+if (${WITH_SSE42})
     target_compile_options(cqf PRIVATE -msse4.2)
-    message(STATUS "SSE4.2 available")
-else ()
-    message(STATUS "SSE4.2 not available")
+    message(STATUS "Using SSE4.2 because -DWITH_SSE42 was specified.")
+#else ()
+#    if (${HAS_SSE4_2} GREATER -1)
+#        target_compile_options(cqf PRIVATE -msse4.2)
+#        message(STATUS "SSE4.2 available")
+#    else ()
+#        message(STATUS "SSE4.2 not available")
+#    endif ()
 endif ()
 
 if (WITH_ASAN)
     message(STATUS "Enabling ASAN")
     target_compile_options(cqf PRIVATE -fsanitize=address)
     target_link_options(cqf PRIVATE -fsanitize=address)
-elseif(WITH_TSAN)
+elseif (WITH_TSAN)
     message(STATUS "Enabling TSAN")
     target_compile_options(cqf PRIVATE -fsanitize=thread)
     target_link_options(cqf PRIVATE -fsanitize=thread)
-elseif(WITH_UBSAN) # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+elseif (WITH_UBSAN) # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
     message(STATUS "Enabling UBSAN")
     target_compile_options(cqf PRIVATE
             -fsanitize=signed-integer-overflow,null,alignment
@@ -96,11 +108,11 @@ elseif(WITH_UBSAN) # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
             -fsanitize=signed-integer-overflow,null,alignment
             -fno-sanitize-recover=null
             -fsanitize-trap=alignment)
-elseif(WITH_MSAN)
+elseif (WITH_MSAN)
     message(STATUS "Enabling MSAN")
     target_compile_options(cqf PRIVATE -fsanitize=memory -fPIE -pie)
     target_link_options(cqf PRIVATE -fsanitize=memory -fPIE -pie)
-endif()
+endif ()
 
 if (${CMAKE_BUILD_TYPE} MATCHES "^Debug*")
     set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
