@@ -49,7 +49,7 @@ if (IPO_AVAILABLE)
     set_target_properties(cqf PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif ()
 set_target_properties(cqf PROPERTIES
-        C_STANDARD 99
+        C_STANDARD 11
         C_STANDARD_REQUIRED ON)
 
 target_sources(cqf PRIVATE src/gqf.c
