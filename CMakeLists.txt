@@ -126,5 +126,5 @@ if (${CMAKE_BUILD_TYPE} MATCHES "^Debug*")
     endif ()
 else ()
     target_compile_options(cqf PRIVATE
-            -O3)
+            -Ofast)
 endif ()
