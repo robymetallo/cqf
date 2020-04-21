@@ -84,14 +84,23 @@ elseif (WITH_TSAN)
     target_link_options(cqf PRIVATE -fsanitize=thread)
 elseif (WITH_UBSAN) # https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
     message(STATUS "Enabling UBSAN")
-    target_compile_options(cqf PRIVATE
-            -fsanitize=signed-integer-overflow,null,alignment
-            -fno-sanitize-recover=null
-            -fsanitize-trap=alignment)
-    target_link_options(cqf PRIVATE
-            -fsanitize=signed-integer-overflow,null,alignment
-            -fno-sanitize-recover=null
-            -fsanitize-trap=alignment)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(cqf PRIVATE
+                -fsanitize=signed-integer-overflow,null,alignment
+                -fno-sanitize-recover=null
+                -fsanitize-trap=alignment)
+        target_link_options(cqf PRIVATE
+                -fsanitize=signed-integer-overflow,null,alignment
+                -fno-sanitize-recover=null
+                -fsanitize-trap=alignment)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(cqf PRIVATE
+                -fsanitize=signed-integer-overflow,null,alignment
+                -fno-sanitize-recover=null)
+        target_link_options(cqf PRIVATE
+                -fsanitize=signed-integer-overflow,null,alignment
+                -fno-sanitize-recover=null)
+    endif ()
 elseif (WITH_MSAN)
     message(STATUS "Enabling MSAN")
     target_compile_options(cqf PRIVATE -fsanitize=memory -fPIE -pie)
